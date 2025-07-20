@@ -141,7 +141,7 @@ docker-compose exec app coverage run
 ---
 ### 7. Diagrama de Sequência
 
-![Arquitetura do Projeto](docs/nome_da_imagem.png)
+![Arquitetura do Projeto](docs/arquitetura.svg)
 
 ---
 
