@@ -80,8 +80,8 @@ Em um novo terminal (diferente do terminal de intancia do Docker), execute os te
 
 #### 5.1 Teste da API
 ```bash
-curl -X POST http://localhost:80/predict/ \
-  -H "Content-Type: application/json" \
+curl -X POST http://localhost:80/predict/ ^
+  -H "Content-Type: application/json" ^
   -d "{\"jsonrpc\": \"2.0\", \"method\": \"candidate_match\", \"params\": {\"vaga_data\": {\"titulo_vaga\": \"Desenvolvedor\"}, \"curriculo_text\": \"Experiência com Django\"}, \"id\": 0}"
 ```
 
