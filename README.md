@@ -1,150 +1,217 @@
-## Setup
+### 1. **Resumo do Projeto**
 
-- Crie a imagem docker e suba os containers:
-  ```bash
-  docker-compose up --buind
-  ```
+Este projeto visa a construção e disponibilização de uma solução baseada em Inteligência Artificial para apoiar os processos de recrutamento e seleção, utilizando dados reais da empresa Decision.
 
-- Realizar chamadas via terminal:
+**Objetivos principais:**
+- Aumentar a eficiência no "match" entre candidatos e vagas;
+- Otimizar o tempo e a qualidade nas entrevistas;
+- Aprender com dados históricos para apoiar novos processos seletivos;
+- Identificar perfis ideais de candidatos(as).
 
-  - **Chamada POST para predição (Windows CMD):**
+---
 
-    ```bash
-    curl -X POST http://localhost:80/predict/ ^
-      -H "Content-Type: application/json" ^
-      -d "{\"jsonrpc\": \"2.0\", \"method\": \"candidate_match\", \"params\": {\"vaga_data\": {\"titulo_vaga\": \"Desenvolvedor\"}, \"curriculo_text\": \"Experiência com Django\"}, \"id\": 0}"
-    ```
+### 2. **Critérios de Entrega Atendidos**
 
-    **Resposta esperada:**
+- [x] **Treinamento do modelo preditivo**
+- [x] **Crie uma API para deployment do modelo**
+- [x] **Realize o empacotamento do modelo com Docker**
+- [x] **Deploy do modelo**
+- [x] **Teste da API**
+- [x] **Testes unitários**
+- [ ] **Monitoramento Contínuo**
 
-    ```json
-    {
-      "result": {
-        "probabilidade de match": 86.33
-      },
-      "id": 0,
-      "jsonrpc": "2.0"
-    }
-    ```
+---
 
-## Testing
+### 3. Pré-requisitos para Execução do Projeto
 
-- rodar somente verificação de tipagem e mau cheiro de código:
-    ```bash
-        docker-compose exec app flake8 --count --max-line-length=119 --show-source --statistics --doctests src/ tests/
+- Docker
+- Docker-compose
+- Python 3.12+
+- `curl` (para testes manuais da API)
 
-    ``` 
-- rodar somente tests:
-    ```bash
-        docker-compose exec app coverage run
-    ``` 
+---
 
+### 4. Setup do Projeto
+#### 4.1 Verificação da Instalação do Docker
+Execute os comandos abaixo para verificar se o Docker e o Docker Compose estão corretamente instalados:
+```bash
+docker --version
+docker-compose --version
+```
+Se os comandos retornarem as versões instaladas, a instalação está correta.
 
-## Arquitetura
-```console
-wine/
-├── application/  # Camada que recebe uma entrada do mundo externo, manipula o domain e retorna algo para o mundo externo.
-├── domain/  # Camada onde os dados recebidos do mundo externo são processados (aqui é onde os modelos de ML estão localizados).
-└── infra/  # Camada onde ficam elementos infraestrutura que ajudam o serviço a funcionar (banco de dados, cache, framework web, etc).
-    └── models/  # Camada onde são armazenados arquivos de treino para serem carregados em memória.
+#### 4.2 Build da Imagem Docker
+Navegue até a raiz do projeto onde se encontram os arquivos `docker-compose.yml` e `Dockerfile`:
+```
+cd caminho/para/projecto
+```
+Para construir a imagem do projeto pela primeira vez:
+```
+docker-compose up --build
+```
+Este comando irá:
+- Construir a imagem da aplicação com base no `Dockerfile`
+- Instanciar e iniciar os serviços definidos no `docker-compose.yml`
+
+#### 4.3 Rebuild da Imagem (forçar nova build)
+Caso tenha feito alterações no código e deseje reconstruir:
+```bash
+docker-compose up --build --force-recreate
 ```
 
-## Modelo
+#### 4.4 Verificar se os Containers estão em Execução
+Execute:
+```bash
+docker ps
+```
+Você deverá ver os containers ativos listados, com seus nomes, status e portas mapeadas (ex: `0.0.0.0:80->80/tcp`).
+Para logs em tempo real da aplicação:
 
-Todo o processo para criação do modelo está documentado nos **Jupyter Notebooks** na pasta `/notebooks`.
+```bash
+docker-compose logs -f
+```
 
-### 📊 Análise exploratória e formatação dos dados
-- [`/notebooks/exploracao_dados.ipynb`](./notebooks/exploracao_dados.ipynb)
-
-### 🛠️ Modelagem, normalização e limpeza dos dados
-- [`/notebooks/criando_dataset_de_treino.ipynb`](./notebooks/criando_dataset_de_treino.ipynb)
-
-### 🤖 Construção e treino do modelo
-- [`/notebooks/treino_do_modelo.ipynb`](./notebooks/treino_do_modelo.ipynb)
-
----
-
-## Explicação do Modelo de Predição de Compatibilidade entre Vagas e Currículos
-
-Este documento descreve o modelo desenvolvido para prever a **probabilidade de compatibilidade** entre uma vaga e um currículo, utilizando os dados do arquivo `df_final.csv`.  
-O modelo foi implementado em **Python**, utilizando as bibliotecas **scikit-learn** e **nltk**.
 
 ---
 
-### 🎯 Modelo Utilizado
+### 5. Testes
 
-- **Algoritmo**: `RandomForestClassifier`
-- **Descrição**:  
-  Um modelo de classificação baseado em árvores de decisão, que combina múltiplas árvores (floresta) para melhorar a robustez e a precisão.  
-  Foi escolhido por sua capacidade de lidar com dados textuais vetorizados e por sua resistência a overfitting em conjuntos pequenos.
+Em um novo terminal (diferente do terminal de intancia do Docker), execute os testes a seguir.
 
-- **Parâmetros principais**:
-  - `n_estimators`: 100 (número de árvores)
-  - `random_state`: 42 (semente aleatória)
+#### 5.1 Teste da API
+```bash
+curl -X POST http://localhost:80/predict/ \
+  -H "Content-Type: application/json" \
+  -d "{\"jsonrpc\": \"2.0\", \"method\": \"candidate_match\", \"params\": {\"vaga_data\": {\"titulo_vaga\": \"Desenvolvedor\"}, \"curriculo_text\": \"Experiência com Django\"}, \"id\": 0}"
+```
 
-- **Saída**:  
-  Probabilidade de compatibilidade entre vaga e currículo (de 0% a 100%), extraída da **classe positiva (`match = 1`)**.
+**Resposta esperada:**
 
----
+```json
+{
+  "result": {
+    "probabilidade de match": 86.33
+  },
+  "id": 0,
+  "jsonrpc": "2.0"
+}
+```
 
-## 🔄 Pré-processamento dos Dados
+#### 5.2 Lint
 
-O pré-processamento transforma os textos da vaga e do currículo em vetores numéricos para alimentar o modelo.
+```bash
+docker-compose exec app flake8 --count --max-line-length=119 --show-source --statistics --doctests src/ tests/
+```
 
-### 📁 Fonte dos Dados
+#### 5.3 Testes Unitários
 
-- **Vaga**:  
-  As seguintes colunas são combinadas em um único texto:  
-  `titulo_vaga`, `principais_atividades`, `competencia_tecnicas_e_comportamentais`, `tipo_contratacao`, `vaga_especifica_para_pcd`, `nivel_profissional`, `nivel_academico`, `nivel_ingles`.
-
-- **Currículo**:  
-  Texto da coluna `cv_pt`, que contém o conteúdo completo do currículo.
-
-- **Rótulo (`label`)**:  
-  A coluna `perfil_compativel` é transformada em valores binários:  
-  - `"sim"` → `1`  
-  - `"não"` → `0`
-
----
-
-### 🧹 Etapas de Pré-processamento
-
-1. **Limpeza**:
-   - Conversão para letras minúsculas
-   - Remoção de pontuação
-   - Tokenização usando `nltk`
-
-2. **Remoção de Stopwords**:
-   - Eliminação de palavras comuns em português (ex.: "de", "para", "com") para focar em termos relevantes
-
-3. **Combinação**:
-   - O texto da vaga e do currículo são unidos em uma única string para vetorização
+```bash
+docker-compose exec app coverage run
+```
 
 ---
 
-## 🔢 Vetorização
+### 6. Arquitetura do Projeto
 
-- **Método**:  
-  `TF-IDF` (*Term Frequency-Inverse Document Frequency*) usando `TfidfVectorizer`
+-  **Pipeline de Machine Learning**
+	1. **Leitura dos dados**
+	2. **Limpeza e pré-processamento**
+	3. **Feature Engineering**
+	4. **Divisão de treino/teste**
+	5. **Treinamento do modelo preditivo**
+	6. **Validação com métricas**
+	7. **Serialização do modelo com Pickle ou Joblib**
 
-- **Parâmetros principais**:
-  - `max_features = 5000` → Limita a 5000 termos para reduzir a dimensionalidade
+- **API de Predição**
+	- Construída com **Flask**;
+	- Endpoint `/predict` para receber dados e responder previsões;
+	- Testes com `cURL`.
 
-- **Resultado**:  
-  Cada par vaga–currículo é representado como um vetor numérico esparso.
+- **Docker**
+	- `Dockerfile` com todas as dependências;
+	- Garantir execução em qualquer ambiente.
+
+- **Deploy Local**
+
+- **Testes**
+	- **Testes unitários** para pipeline e componentes;
+	- **Logs de monitoramento**;
+	- Painel para **monitoramento de drift** no modelo.
+
+---
+### 7. Diagrama de Sequência
+
+![Arquitetura do Projeto](docs/nome_da_imagem.png)
 
 ---
 
-## 📈 Métricas do Modelo
+### 8. Estrutura do Projeto
 
-O modelo foi avaliado com uma divisão de **80% dos dados para treino** e **20% para teste**.
-
-- **Acurácia**: `0.72`  
-  → O modelo acertou 72% das previsões no conjunto de teste.
-
-- **F1-Score**: `0.83`  
-  → Média harmônica entre precisão e recall, indicando bom equilíbrio entre identificar matches corretos e evitar falsos positivos.
-
-- **Tempo de Treinamento**: `~111.28 segundos`
+```plaintext
+tech_chellange_5/
+├── notebooks/                       # <Prototipagem e treinamento do modelo (EDA, engineering feature, train model)>
+│   ├── dados/
+│   │   ├── applicants.json
+│   │   ├── prospects.json
+│   │   ├── vagas.json
+│   │   └── [...]
+│   ├── model_path/ [...]            # <Artifacts dos modelo treinado>
+│   ├── 00_eda.ipynb
+│   ├── 01_feature_engineering.ipynb
+│   └── 02_train_model.ipynb
+├── src/
+│   ├── application/ [...]           # <Camada para Interação com a API. Recebe os dados externos, aciona o domain e retorna para API>
+│   ├── domain/ [...]                # <Camada de processamento dos dos dados recebido (Regras de negócio, features engineering)
+│   ├── infra/ [...]                 # <Camada onde ficam elementos infraestrutura que ajudam o serviço a funcionar
+│   ├── main.py                      # <Orquestrador do aplicativo (API)>
+│   └── routes.py
+├── tests/ [...]                     # <Testes Unitários
+├── var/ [...]
+├── .coveragerc
+├── .dockerignore
+├── .gitignore
+├── docker-compose.yml
+├── Dockerfile
+├── README.md
+└── requirements.txt
+```
 
 ---
+
+### 9. Base de Dados
+
+Os dados utilizados estão localizados em `notebooks/dados/`:
+
+- `applicants.json`
+- `prospects.json`
+- `vagas.json`
+
+Origem: [https://drive.google.com/drive/folders/1f3jtTRyOK-PBvND3JTPTAxHpnSrH7rFR?usp=sharing](https://drive.google.com/drive/folders/1f3jtTRyOK-PBvND3JTPTAxHpnSrH7rFR?usp=sharing)
+
+---
+
+### 10. Modelo de Predição
+
+- Algoritmo: `RandomForestClassifier`
+- Frameworks: `scikit-learn`, `nltk`
+- Saída: Probabilidade de compatibilidade (0 a 100%)
+#### Pré-processamento
+- Conversão para minúsculas
+- Remoção de pontuação
+- Tokenização com nltk
+- Remoção de stopwords
+- Combinação do texto da vaga e do currículo
+#### Vetorização
+- Método: `TF-IDF` com `TfidfVectorizer`
+- Parâmetros: `max_features = 5000`
+
+#### Métricas
+- Acurácia: 0.72
+- F1-Score: 0.83
+- Tempo de Treinamento: ~111 segundos
+
+#### Colunas Utilizadas
+
+- Vaga: `titulo_vaga`, `principais_atividades`, `competencia_tecnicas_e_comportamentais`, `tipo_contratacao`, `vaga_especifica_para_pcd`, `nivel_profissional`, `nivel_academico`, `nivel_ingles`
+- Currículo: `cv_pt`
+- Rótulo: `perfil_compativel` → "sim" = 1, "não" = 0

@@ -1,0 +1,28 @@
+@startuml
+actor "Usuário ou API Client" as Client
+participant "Banco de dados" as Data
+participant "Pré-processamento" as Preproc
+participant "Feature Engineering" as FE
+participant "Treinamento do Modelo" as Train
+participant "Serialização" as Save
+participant "API /predict" as API
+participant "Modelo Treinado" as Model
+
+== Pipeline de Treinamento ==
+Client -> Data : Fornece arquivos JSON
+Data -> Preproc : Carrega e unifica dados
+Preproc -> FE : Gera variáveis (features)
+FE -> Train : Treina o modelo com dados processados
+Train -> Save : Salva modelo (.pkl)
+Save -> Model : Atualiza versão do modelo treinado
+
+== Execução da API ==
+Client -> API : Envia dados via /predict
+API -> Model : Carrega modelo treinado
+Model --> API
+API -> FE : Aplica transformações nos dados recebidos
+FE -> API : Retorna dados vetorizados
+API -> Model : Faz predição
+Model -> API : Retorna resultado
+API -> Client : Retorna resposta (insight)
+@enduml
