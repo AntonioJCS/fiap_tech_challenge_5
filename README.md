@@ -8,6 +8,8 @@ Este projeto visa a construção e disponibilização de uma solução baseada e
 - Aprender com dados históricos para apoiar novos processos seletivos;
 - Identificar perfis ideais de candidatos(as).
 
+Video: https://www.youtube.com/watch?v=numh0TCIIXM
+
 ---
 
 ### 2. **Critérios de Entrega Atendidos**
